@@ -1,0 +1,22 @@
+(*net/url.URL).Query
+(*net/http.Request).FormValue
+io.ReadAll
+*http.Request
+echo(w, r)
+echo(w, r.Body)
+net/http.Request.Body
+r.URL.Query()
+r.URL.Query().Get("paramName") 
+
+r.URL.User.Password() 
+
+r.FormValue("paramName")
+r.Form.Get("paramName") 
+
+os.Args 
+
+r.Body 
+io.ReadAll(r.Body) 
+
+r.FormValue // All form values
+r.URL // Complete URL of the request

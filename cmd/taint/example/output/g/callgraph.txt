@@ -1,0 +1,51 @@
+n9:(io.Writer).Write
+	→ n10:(net/http.ResponseWriter).Write
+
+n1:github.com/picatz/taint/xss/testdata/src/g.echoSafe
+	→ n3:io.ReadAll
+	→ n4:html.EscapeString
+	→ n5:(io.Writer).Write
+	→ n11:(io.Writer).Write
+
+n11:(io.Writer).Write
+	→ n12:(net/http.ResponseWriter).Write
+
+n12:(net/http.ResponseWriter).Write
+
+n14:(net/http.ResponseWriter).Write
+
+n16:net/http.ListenAndServe
+
+n0:github.com/picatz/taint/xss/testdata/src/g.main
+	→ n15:net/http.HandleFunc
+	→ n16:net/http.ListenAndServe
+
+n8:bufio.NewWriterSize
+	→ n9:(io.Writer).Write
+
+n13:(io.Writer).Write
+	→ n14:(net/http.ResponseWriter).Write
+
+n5:(io.Writer).Write
+
+n6:github.com/picatz/taint/xss/testdata/src/g.echoUnsafe
+	→ n3:io.ReadAll
+	→ n7:(io.Writer).Write
+	→ n13:(io.Writer).Write
+
+n7:(io.Writer).Write
+
+n10:(net/http.ResponseWriter).Write
+
+n15:net/http.HandleFunc
+	→ n2:github.com/picatz/taint/xss/testdata/src/g.handler
+
+n2:github.com/picatz/taint/xss/testdata/src/g.handler
+	→ n1:github.com/picatz/taint/xss/testdata/src/g.echoSafe
+	→ n6:github.com/picatz/taint/xss/testdata/src/g.echoUnsafe
+	→ n8:bufio.NewWriterSize
+
+n3:io.ReadAll
+
+n4:html.EscapeString
+

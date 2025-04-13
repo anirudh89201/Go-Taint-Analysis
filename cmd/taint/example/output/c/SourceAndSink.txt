@@ -1,0 +1,4 @@
+n6:net/http.HandleFunc → n8:github.com/picatz/taint/xss/testdata/src/c.mirror2 → n20:io.WriteString → n21:(io.Writer).Write → n22:(net/http.ResponseWriter).Write
+n6:net/http.HandleFunc → n9:github.com/picatz/taint/xss/testdata/src/c.mirror3 → n23:(net/http.ResponseWriter).Write
+n6:net/http.HandleFunc → n8:github.com/picatz/taint/xss/testdata/src/c.mirror2 → n20:io.WriteString → n21:(io.Writer).Write
+n6:net/http.HandleFunc → n1:github.com/picatz/taint/xss/testdata/src/c.mirror4 → n5:(net/http.ResponseWriter).Write

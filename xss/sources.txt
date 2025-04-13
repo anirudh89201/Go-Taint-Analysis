@@ -1,0 +1,5 @@
+(*net/http.Request).URL.Query().Get
+(*net/http.Request).FormValue
+(*net/http.Request).PostFormValue
+(*net/http.Request).Header.Get
+(*net/http.Request).Cookie

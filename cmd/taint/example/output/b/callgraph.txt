@@ -1,0 +1,20 @@
+n2:(*net/url.URL).Query
+
+n3:(net/url.Values).Get
+
+n4:(net/http.ResponseWriter).Write
+
+n5:net/http.HandleFunc
+	→ n1:github.com/picatz/taint/xss/testdata/src/b.mirror
+
+n6:net/http.ListenAndServe
+
+n0:github.com/picatz/taint/xss/testdata/src/b.main
+	→ n5:net/http.HandleFunc
+	→ n6:net/http.ListenAndServe
+
+n1:github.com/picatz/taint/xss/testdata/src/b.mirror
+	→ n2:(*net/url.URL).Query
+	→ n3:(net/url.Values).Get
+	→ n4:(net/http.ResponseWriter).Write
+

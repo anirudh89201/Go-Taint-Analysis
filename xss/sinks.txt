@@ -1,0 +1,6 @@
+w.Write([]byte(...))
+w.WriteHeader
+w.WriteHeader(http.Status...)
+w.Write(b)
+w.Write([]byte(es))
+(io.Writer).Write

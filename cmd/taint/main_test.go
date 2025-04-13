@@ -121,4 +121,5 @@ func TestLoadAndSearch(t *testing.T) {
 	for _, path := range paths {
 		t.Log(path)
 	}
+
 }

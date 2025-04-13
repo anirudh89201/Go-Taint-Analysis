@@ -1,0 +1,73 @@
+n4:(io.ReadCloser).Read
+
+n5:(net/http.ResponseWriter).Write
+
+n13:(io.Reader).Read
+	→ n14:(io.ReadCloser).Read
+
+n19:(net/url.Values).Get
+
+n1:github.com/picatz/taint/xss/testdata/src/c.mirror4
+	→ n2:io.ReadAll
+	→ n5:(net/http.ResponseWriter).Write
+
+n2:io.ReadAll
+	→ n3:(io.Reader).Read
+
+n6:net/http.HandleFunc
+	→ n7:github.com/picatz/taint/xss/testdata/src/c.mirror
+	→ n8:github.com/picatz/taint/xss/testdata/src/c.mirror2
+	→ n9:github.com/picatz/taint/xss/testdata/src/c.mirror3
+	→ n1:github.com/picatz/taint/xss/testdata/src/c.mirror4
+
+n11:github.com/picatz/taint/xss/testdata/src/c.buffer
+	→ n12:bufio.NewReader
+	→ n13:(io.Reader).Read
+
+n12:bufio.NewReader
+
+n14:(io.ReadCloser).Read
+
+n21:(io.Writer).Write
+	→ n22:(net/http.ResponseWriter).Write
+
+n23:(net/http.ResponseWriter).Write
+
+n8:github.com/picatz/taint/xss/testdata/src/c.mirror2
+	→ n18:(*net/url.URL).Query
+	→ n19:(net/url.Values).Get
+	→ n20:io.WriteString
+
+n9:github.com/picatz/taint/xss/testdata/src/c.mirror3
+	→ n18:(*net/url.URL).Query
+	→ n19:(net/url.Values).Get
+	→ n23:(net/http.ResponseWriter).Write
+
+n10:net/http.ListenAndServe
+
+n15:io.Copy
+	→ n16:(io.Writer).Write
+
+n18:(*net/url.URL).Query
+
+n22:(net/http.ResponseWriter).Write
+
+n0:github.com/picatz/taint/xss/testdata/src/c.main
+	→ n6:net/http.HandleFunc
+	→ n10:net/http.ListenAndServe
+
+n7:github.com/picatz/taint/xss/testdata/src/c.mirror
+	→ n11:github.com/picatz/taint/xss/testdata/src/c.buffer
+	→ n15:io.Copy
+
+n16:(io.Writer).Write
+	→ n17:(net/http.ResponseWriter).Write
+
+n17:(net/http.ResponseWriter).Write
+
+n20:io.WriteString
+	→ n21:(io.Writer).Write
+
+n3:(io.Reader).Read
+	→ n4:(io.ReadCloser).Read
+

@@ -2,27 +2,47 @@ package xss
 
 import (
 	"fmt"
+	"log"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/picatz/taint"
 	"github.com/picatz/taint/callgraphutil"
-
 	"golang.org/x/tools/go/analysis"
 	"golang.org/x/tools/go/analysis/passes/buildssa"
+	"golang.org/x/tools/go/packages"
 	"golang.org/x/tools/go/ssa"
+	"golang.org/x/tools/go/ssa/ssautil"
 )
 
-var userControlledValues = taint.NewSources(
-	"*net/http.Request",
-)
+func loadListFromFile(filename string) ([]string, error) {
+	data, err := os.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
+	lines := strings.Split(string(data), "\n")
+	var filtered []string
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line != "" && !strings.HasPrefix(line, "#") {
+			filtered = append(filtered, line)
+		}
+	}
+	return filtered, nil
+}
+func getDynamicSourceAndSinks() (taint.Sources, taint.Sinks, error) {
+	sourceList, err := loadListFromFile("sources.txt")
+	if err != nil {
+		return nil, nil, fmt.Errorf("error reading sources.txt:%v", err)
+	}
+	sinkList, err := loadListFromFile("sinks.txt")
+	if err != nil {
+		return nil, nil, fmt.Errorf("error reading sinks.txt:%v", err)
+	}
+	return taint.NewSources(sourceList...), taint.NewSinks(sinkList...), nil
+}
 
-var injectableFunctions = taint.NewSinks(
-	// Note: at this time, they *must* be a function or method.
-	"(net/http.ResponseWriter).Write",
-	"(net/http.ResponseWriter).WriteHeader",
-)
-
-// Analyzer finds potential XSS issues.
 var Analyzer = &analysis.Analyzer{
 	Name:     "xss",
 	Doc:      "finds potential XSS issues",
@@ -30,58 +50,38 @@ var Analyzer = &analysis.Analyzer{
 	Requires: []*analysis.Analyzer{buildssa.Analyzer},
 }
 
-// imports returns true if the package imports any of the given packages.
 func imports(pass *analysis.Pass, pkgs ...string) bool {
-	var imported bool
+
 	for _, imp := range pass.Pkg.Imports() {
 		for _, pkg := range pkgs {
 			if strings.HasSuffix(imp.Path(), pkg) {
-				imported = true
-				break
+				return true
 			}
 		}
-		if imported {
-			break
-		}
 	}
-	return imported
+	return false
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
-	// Require the log package is imported in the
-	// program being analyzed before running the analysis.
-	//
-	// This prevents wasting time analyzing programs that don't log.
+	log.Printf("hello World")
 	if !imports(pass, "net/http") {
 		return nil, nil
 	}
-
-	// Get the built SSA IR.
 	buildSSA := pass.ResultOf[buildssa.Analyzer].(*buildssa.SSA)
-
-	// Identify the main function from the package's SSA IR.
 	mainFn := buildSSA.Pkg.Func("main")
 	if mainFn == nil {
 		return nil, nil
 	}
-
-	// Construct a callgraph, using the main function as the root,
-	// constructed of all other functions. This returns a callgraph
-	// we can use to identify directed paths to logging functions.
 	cg, err := callgraphutil.NewGraph(mainFn, buildSSA.SrcFuncs...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create new callgraph: %w", err)
 	}
-
-	// fmt.Println(cg)
-
-	// Run taint check for user controlled values (sources) ending
-	// up in injectable log functions (sinks).
-	results := taint.Check(cg, userControlledValues, injectableFunctions)
-
+	source, sinks, err := getDynamicSourceAndSinks()
+	if err != nil {
+		return nil, err
+	}
+	results := taint.Check(cg, source, sinks)
 	for _, result := range results {
-		// Check if html.EscapeString was called on the source value
-		// before it was passed to the sink.
 		var escaped bool
 		for _, edge := range result.Path {
 			for _, arg := range edge.Site.Common().Args {
@@ -103,9 +103,99 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		}
 
 		if !escaped {
-			pass.Reportf(result.SinkValue.Pos(), "potential XSS")
+			msg := fmt.Sprintf("Taint flow detected: source=%v -> sink=%v", result.SourceType, result.SinkType)
+			pass.Reportf(result.SinkValue.Pos(), msg)
 		}
+
+	}
+	return nil, nil
+}
+
+func Script() {
+	baseDir := "../../xss/testdata/src"
+
+	absPath, err := filepath.Abs(baseDir)
+	if err != nil {
+		log.Fatalf("Error getting absolute path: %v", err)
+	}
+	fmt.Println("Searching in:", absPath)
+
+	subdirs, err := os.ReadDir(absPath)
+	if err != nil {
+		log.Fatalf("Error reading base directory: %v", err)
 	}
 
-	return nil, nil
+	for _, subdir := range subdirs {
+		if subdir.IsDir() {
+			dirPath := filepath.Join(absPath, subdir.Name())
+
+			cfg := &packages.Config{
+				Mode: packages.LoadAllSyntax,
+				Dir:  dirPath,
+			}
+
+			pkgs, err := packages.Load(cfg, "./...")
+			if err != nil {
+				log.Printf("Error loading package: %v", err)
+				continue
+			}
+			if packages.PrintErrors(pkgs) > 0 {
+				continue
+			}
+
+			prog, pkgsMap := ssautil.AllPackages(pkgs, ssa.BuilderMode(0))
+			prog.Build()
+
+			var mainPkg *ssa.Package
+			for _, pkg := range pkgsMap {
+				if pkg.Pkg.Name == "main" {
+					mainPkg = pkg
+					break
+				}
+			}
+			if mainPkg == nil {
+				log.Printf("No main package found in %s\n", dirPath)
+				continue
+			}
+
+			mainFn := mainPkg.Func("main")
+			if mainFn == nil {
+				log.Printf("No main function found in %s\n", dirPath)
+				continue
+			}
+
+			cg, err := callgraphutil.NewGraph(mainFn, mainPkg.Members)
+			if err != nil {
+				log.Printf("Error generating call graph: %v\n", err)
+				continue
+			}
+
+			fmt.Println("Call Graph Roots:")
+			for _, r := range cg.Roots() {
+				fmt.Println(" -", r.Func.String())
+			}
+
+			fmt.Println("Call Graph Nodes:")
+			for fn := range cg.Nodes() {
+				fmt.Println(" -", fn.String())
+			}
+
+			// Run Taint Check
+			sources, sinks, err := getDynamicSourceAndSinks()
+			if err != nil {
+				log.Printf("Failed loading sources/sinks: %v\n", err)
+				continue
+			}
+			results := taint.Check(cg, sources, sinks)
+
+			fmt.Println("Taint Analysis Results:")
+			for _, result := range results {
+				fmt.Printf("Found taint: %s -> %s\n", result.SourceType, result.SinkType)
+				for _, edge := range result.Path {
+					fmt.Printf("  %s -> %s\n", edge.Caller, edge.Callee)
+				}
+			}
+			fmt.Println(strings.Repeat("-", 40))
+		}
+	}
 }

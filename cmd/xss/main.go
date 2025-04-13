@@ -1,10 +1,9 @@
 package main
 
 import (
-	"github.com/picatz/taint/xss"
-	"golang.org/x/tools/go/analysis/singlechecker"
+	"fmt"
 )
 
 func main() {
-	singlechecker.Main(xss.Analyzer)
+	fmt.Printf("Hello WOrld")
 }

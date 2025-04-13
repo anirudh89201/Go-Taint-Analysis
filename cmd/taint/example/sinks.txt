@@ -1,0 +1,12 @@
+(net/http.ResponseWriter).Write
+w.Write([]byte(str))
+w.Write([]byte(...))
+w.WriteHeader
+w.WriteHeader(http.Status...)
+w.Write(b)
+(io.Writer).Write
+db.Query(q)                    
+db.Query(...) with fmt.Sprintf 
+db.Query("SELECT * FROM lol where name=?", name)
+(*database/sql.DB).Query
+(*database/sql.DB).Exec
