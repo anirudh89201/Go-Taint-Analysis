@@ -1,1 +1,0 @@
-n0:github.com/picatz/taint/xss/testdata/src/d.main → n7:net/http.HandleFunc → n1:github.com/picatz/taint/xss/testdata/src/d.mirrorSafe → n6:(net/http.ResponseWriter).Write

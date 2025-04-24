@@ -1,1 +1,0 @@
-n0:github.com/picatz/taint/xss/testdata/src/e.main → n7:net/http.HandleFunc → n2:github.com/picatz/taint/xss/testdata/src/e.handler → n1:github.com/picatz/taint/xss/testdata/src/e.echo → n4:(io.Writer).Write

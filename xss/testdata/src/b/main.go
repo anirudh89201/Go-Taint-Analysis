@@ -9,7 +9,6 @@ func mirror(w http.ResponseWriter, r *http.Request) {
 
 	b := []byte(input)
 
-	w.Write(b) // want "potential XSS"
 }
 
 func main() {

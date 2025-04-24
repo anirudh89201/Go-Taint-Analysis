@@ -1,1 +1,0 @@
-Root of this callGraph:=n0:github.com/picatz/taint/xss/testdata/src/c.main

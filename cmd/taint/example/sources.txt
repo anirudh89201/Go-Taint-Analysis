@@ -7,16 +7,27 @@ echo(w, r.Body)
 net/http.Request.Body
 r.URL.Query()
 r.URL.Query().Get("paramName") 
-
 r.URL.User.Password() 
-
 r.FormValue("paramName")
 r.Form.Get("paramName") 
-
 os.Args 
-
+os.Args[1]	
 r.Body 
 io.ReadAll(r.Body) 
-
 r.FormValue // All form values
 r.URL // Complete URL of the request
+(*net/url.Userinfo).Password
+r.URL.Query().Get("input")
+r.Body
+r.FormValue("formField")
+(*net/url.URL).Query
+(*net/url.URL).Query().Get
+(*net/http.Request).FormValue
+(*net/http.Request).Form.Get
+(*http.Request).Body
+(*net/http.Request).Header.Get
+(*net/http.Request).Cookie
+io.ReadAll.(*http.Request).Body
+(net/url.Values).Get
+github.com/picatz/taint/sql/injection/testdata/src/h.realMain$1$1
+github.com/picatz/taint/sql/injection/testdata/src/h.realMain$1

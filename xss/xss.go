@@ -1,4 +1,4 @@
-package xss
+package main
 
 import (
 	"fmt"
@@ -31,27 +31,20 @@ func loadListFromFile(filename string) ([]string, error) {
 	}
 	return filtered, nil
 }
+
 func getDynamicSourceAndSinks() (taint.Sources, taint.Sinks, error) {
 	sourceList, err := loadListFromFile("sources.txt")
 	if err != nil {
-		return nil, nil, fmt.Errorf("error reading sources.txt:%v", err)
+		return nil, nil, fmt.Errorf("error reading sources.txt: %v", err)
 	}
 	sinkList, err := loadListFromFile("sinks.txt")
 	if err != nil {
-		return nil, nil, fmt.Errorf("error reading sinks.txt:%v", err)
+		return nil, nil, fmt.Errorf("error reading sinks.txt: %v", err)
 	}
 	return taint.NewSources(sourceList...), taint.NewSinks(sinkList...), nil
 }
 
-var Analyzer = &analysis.Analyzer{
-	Name:     "xss",
-	Doc:      "finds potential XSS issues",
-	Run:      run,
-	Requires: []*analysis.Analyzer{buildssa.Analyzer},
-}
-
 func imports(pass *analysis.Pass, pkgs ...string) bool {
-
 	for _, imp := range pass.Pkg.Imports() {
 		for _, pkg := range pkgs {
 			if strings.HasSuffix(imp.Path(), pkg) {
@@ -63,7 +56,7 @@ func imports(pass *analysis.Pass, pkgs ...string) bool {
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
-	log.Printf("hello World")
+	log.Printf("Running taint analysis...")
 	if !imports(pass, "net/http") {
 		return nil, nil
 	}
@@ -76,11 +69,11 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to create new callgraph: %w", err)
 	}
-	source, sinks, err := getDynamicSourceAndSinks()
+	sources, sinks, err := getDynamicSourceAndSinks()
 	if err != nil {
 		return nil, err
 	}
-	results := taint.Check(cg, source, sinks)
+	results := taint.Check(cg, sources, sinks)
 	for _, result := range results {
 		var escaped bool
 		for _, edge := range result.Path {
@@ -101,18 +94,23 @@ func run(pass *analysis.Pass) (interface{}, error) {
 				break
 			}
 		}
-
 		if !escaped {
 			msg := fmt.Sprintf("Taint flow detected: source=%v -> sink=%v", result.SourceType, result.SinkType)
 			pass.Reportf(result.SinkValue.Pos(), msg)
 		}
-
 	}
 	return nil, nil
 }
 
-func Script() {
-	baseDir := "../../xss/testdata/src"
+var Analyzer = &analysis.Analyzer{
+	Name:     "xss",
+	Doc:      "finds potential XSS issues",
+	Run:      run,
+	Requires: []*analysis.Analyzer{buildssa.Analyzer},
+}
+
+func main() {
+	baseDir := "./testdata/src"
 
 	absPath, err := filepath.Abs(baseDir)
 	if err != nil {
@@ -180,7 +178,6 @@ func Script() {
 				fmt.Println(" -", fn.String())
 			}
 
-			// Run Taint Check
 			sources, sinks, err := getDynamicSourceAndSinks()
 			if err != nil {
 				log.Printf("Failed loading sources/sinks: %v\n", err)
