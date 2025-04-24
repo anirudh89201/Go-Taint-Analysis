@@ -1,0 +1,36 @@
+(net/http.ResponseWriter).Write
+w.Write([]byte(str))
+w.Write([]byte(...))
+w.WriteHeader
+w.WriteHeader(http.Status...)
+w.Write(b)
+(io.Writer).Write
+db.Query
+(*database/sql.DB).Query
+(*sql.DB).Query
+(*github.com/jinzhu/gorm.DB).Where
+db.Query(q)                    
+db.Query(...) 
+db.Query("SELECT * FROM lol where name=?", name)
+(*database/sql.DB).Query
+(*database/sql.DB).Exec
+w.WriteHeader
+w.WriteHeader(http.Status...)
+w.Write(b)
+w.Write([]byte(queryInput))
+w.Write([]byte(formInput))
+w.Write([]byte(es))
+w.Write([]byte(r.URL.Query().Get("q")))
+(io.Writer).Write
+io.Copy(w, buffer(r.Body))
+io.WriteString(w, r.URL.Query().Get("q"))
+w.Write([]byte(str))
+(*log.Logger).Println
+log.Println
+(*slog.Logger).InfoContext
+slog.Info
+(io.Writer).Write
+(*database/sql.DB).Exec
+(*database/sql.DB).Query
+log/slog.Info
+(*log/slog.Logger).InfoContext
