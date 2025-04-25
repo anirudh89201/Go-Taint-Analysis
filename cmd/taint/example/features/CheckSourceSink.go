@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
-
 	"github.com/picatz/taint"
+
 	"golang.org/x/tools/go/callgraph"
 )
 
