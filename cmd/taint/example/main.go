@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"go/token"
 	"log"
 	"os"
 	"path/filepath"
@@ -109,11 +110,17 @@ func main() {
 				fmt.Printf("Error running log injection check: %v\n", logErr)
 				return nil
 			}
+			fset := token.NewFileSet() // WARNING: won't work properly without adding files
 
 			for _, result := range XSSResults {
-				resultsWriter.WriteString(string(result.SinkValue.Pos()) + "potential XSS injection")
+				pos := fset.Position(result.SinkValue.Pos())
+				srcPos := fset.Position(result.SourceValue.Pos())
+				line := fmt.Sprintf("XSS Injection Path:\n  Source at %s:%d\n  Sink at %s:%d\n\n",
+					srcPos.Filename, srcPos.Line, pos.Filename, pos.Line)
+				resultsWriter.WriteString(line)
 			}
-			SqlResults, SqlError := RunXSSCheck(cg)
+
+			SqlResults, SqlError := RunSqlCheck(cg)
 			if SqlError != nil {
 				fmt.Printf("Error running log injection check: %v\n", logErr)
 				return nil
@@ -123,7 +130,7 @@ func main() {
 				resultsWriter.WriteString(string(result.SinkValue.Pos()) + "potential Sql injection")
 			}
 			// Write Source and Sink checks
-			sinkFilePath := filepath.Join(outputDir, "SourceAndSink.txt")
+			sinkFilePath := filepath.Join(outputDir, "DataRoute.txt")
 			sinkFile, err := os.Create(sinkFilePath)
 			if err != nil {
 				fmt.Printf("Failed to create SourceAndSink.txt: %v\n", err)
